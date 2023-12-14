@@ -5,15 +5,14 @@ import com.bangkit.jajanjalanseller.data.remote.response.CreateTokoResponse
 import com.bangkit.jajanjalanseller.data.remote.response.LoginResponse
 import com.bangkit.jajanjalanseller.data.remote.response.Seller
 import com.bangkit.jajanjalanseller.data.remote.response.SellerResponse
-import com.bangkit.jajanjalanseller.data.remote.response.Shop
 import okhttp3.MultipartBody
+import okhttp3.RequestBody
 import retrofit2.Call
 import retrofit2.Response
 import retrofit2.http.Body
 import retrofit2.http.Field
 import retrofit2.http.FormUrlEncoded
 import retrofit2.http.GET
-import retrofit2.http.Header
 import retrofit2.http.Multipart
 import retrofit2.http.PATCH
 import retrofit2.http.POST
@@ -30,12 +29,17 @@ interface ApiService {
     fun login(
         @Body user: Seller
     ): Call<LoginResponse>
-
+    @Multipart
     @POST("penjual/create")
-    fun createToko(
-        @Header("Authorization") token: String,
-        @Body shop: Shop
-    ): Call<CreateTokoResponse>
+    suspend fun createShop(
+        @Part("name") name: RequestBody,
+        @Part("address") address: RequestBody,
+        @Part("phone") phone: RequestBody,
+        @Part("lat") lat: Float? = null,
+        @Part("lon") lon: Float? = null,
+        @Part("description") description: RequestBody,
+        @Part image: MultipartBody.Part
+    ): Response<CreateTokoResponse>
 
 
     @FormUrlEncoded

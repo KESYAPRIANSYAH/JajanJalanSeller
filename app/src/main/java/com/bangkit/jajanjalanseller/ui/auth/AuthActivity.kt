@@ -1,11 +1,10 @@
 package com.bangkit.jajanjalanseller.ui.auth
 
 import android.content.Intent
-import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import androidx.activity.viewModels
+import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
-import com.bangkit.jajanjalanseller.MainActivity
 import com.bangkit.jajanjalanseller.databinding.ActivityAuthBinding
 import com.bangkit.jajanjalanseller.ui.auth.viewmodel.AuthViewModel
 import com.bangkit.jajanjalanseller.ui.toko.CreateTokoActivity
@@ -37,7 +36,7 @@ class AuthActivity : AppCompatActivity() {
     }
 
     private fun navigateToMainActivity() {
-        Intent(this, CreateTokoActivity::class.java).also {intent->
+        Intent(this, CreateTokoActivity::class.java).also { intent->
             intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK or Intent.FLAG_ACTIVITY_NEW_TASK)
             startActivity(intent)
         }

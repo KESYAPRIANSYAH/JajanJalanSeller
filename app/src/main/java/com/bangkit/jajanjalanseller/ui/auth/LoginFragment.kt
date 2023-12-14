@@ -1,17 +1,15 @@
 package com.bangkit.jajanjalanseller.ui.auth
 
-import android.content.Intent
 import android.os.Bundle
 import android.util.Log
-import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
-import com.bangkit.jajanjalanseller.data.Result
+import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.navigation.fragment.findNavController
-import com.bangkit.jajanjalanseller.MainActivity
+import com.bangkit.jajanjalanseller.data.Result
 import com.bangkit.jajanjalanseller.databinding.FragmentLoginBinding
 import com.bangkit.jajanjalanseller.ui.auth.viewmodel.LoginViewModel
 import dagger.hilt.android.AndroidEntryPoint
@@ -51,6 +49,7 @@ class LoginFragment : Fragment() {
                     val userId = it.data.userInfo?.userId.toString()
                     Log.d("User Id", userId)
                     getDetailUser(userId, it.data.userInfo?.token.toString())
+                  
                 }
                 is Result.Error -> {
                     binding.progressIndicator.hide()
@@ -88,7 +87,7 @@ class LoginFragment : Fragment() {
                 is Result.Success -> {
                     Log.d("User Login Info", response.data.toString())
                     val user = response.data.sellerDetail!!
-                    // Access user properties as needed
+
                     saveSession(
                         user.id.toString(),
                         user.email.toString(),
@@ -119,9 +118,8 @@ class LoginFragment : Fragment() {
     ) {
 
         viewModel.saveUser(userId, email, name, image, password,role, token)
-        val intent = Intent(requireContext(), MainActivity::class.java)
-        startActivity(intent)
-        requireActivity().finish()
+
+
     }
 
 

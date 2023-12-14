@@ -3,13 +3,11 @@ package com.bangkit.jajanjalanseller.data.local
 import android.util.Log
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
-import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.emptyPreferences
 import androidx.datastore.preferences.core.stringPreferencesKey
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.catch
-import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import java.io.IOException
 import javax.inject.Inject
@@ -26,7 +24,6 @@ class DataStoreManager @Inject constructor(
         val USER_ROLE = stringPreferencesKey("user_role") // Tambahan
         val USER_PASSWORD = stringPreferencesKey("user_password") // Opsional
         val USER_TOKEN = stringPreferencesKey("user_token")
-
 
 
     }
@@ -52,6 +49,19 @@ class DataStoreManager @Inject constructor(
         }
     }
 
+//    fun getSession(): Flow<SellerModel> {
+//        return dataStore.data.map { preferences ->
+//            SellerModel(
+//                preferences[USER_ID] ?: "",
+//                preferences[USER_EMAIL] ?: "",
+//                preferences[USER_NAME] ?: "",
+//                preferences[USER_IMAGE] ?: "",
+//                preferences[USER_IMAGE] ?: "",
+//                preferences[USER_PASSWORD] ?: "",
+//            )
+//        }
+//    }
+
     val getUser: Flow<SellerModel> = dataStore.data
         .catch { exception ->
             if (exception is IOException) {
@@ -72,7 +82,6 @@ class DataStoreManager @Inject constructor(
         }
 
 
-
     suspend fun clear() {
         dataStore.edit { preferences ->
             preferences.clear()
@@ -85,6 +94,7 @@ class DataStoreManager @Inject constructor(
             preferences[USER_TOKEN] = token
         }
     }
+
 
     fun getToken(): Flow<String?> {
         return dataStore.data.map { preferences ->

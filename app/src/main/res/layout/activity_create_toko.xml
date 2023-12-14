@@ -19,7 +19,7 @@
     <ImageView
         android:id="@+id/imageView"
         android:layout_width="wrap_content"
-        android:layout_height="@dimen/_300sdp"
+        android:layout_height="@dimen/_200sdp"
         android:layout_marginTop="32dp"
         android:contentDescription="@string/buattoko"
         android:src="@drawable/create_toko"
@@ -124,6 +124,32 @@
                 android:fontFamily="@font/roboto"
                 android:hint="@string/number_phone"
                 android:inputType="phone"
+                android:paddingHorizontal="@dimen/_8sdp" />
+
+        </com.google.android.material.textfield.TextInputLayout>
+        <com.google.android.material.textfield.TextInputLayout
+            android:id="@+id/tl_description"
+            android:layout_width="match_parent"
+            android:layout_height="@dimen/_44sdp"
+            android:layout_marginHorizontal="@dimen/_16sdp"
+            android:layout_marginVertical="@dimen/_16sdp"
+            android:focusable="false"
+            android:focusableInTouchMode="false"
+            app:boxStrokeColor="@color/blue"
+            app:startIconDrawable="@drawable/ic_phone"
+            tools:layout_editor_absoluteX="21dp"
+            tools:layout_editor_absoluteY="421dp">
+
+            <EditText
+                android:id="@+id/ed_descrption"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:layout_gravity="start"
+
+                android:autofillHints=""
+                android:fontFamily="@font/roboto"
+                android:hint="@string/number_phone"
+                android:inputType="text"
                 android:paddingHorizontal="@dimen/_8sdp" />
 
         </com.google.android.material.textfield.TextInputLayout>

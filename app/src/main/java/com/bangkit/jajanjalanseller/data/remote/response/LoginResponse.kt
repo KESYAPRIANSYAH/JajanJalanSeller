@@ -26,6 +26,5 @@ data class UserInfoLogin(
 
 	@field:SerializedName("token")
 	val token: String? = null,
-	val image: String,
-	val role: String
+
 )

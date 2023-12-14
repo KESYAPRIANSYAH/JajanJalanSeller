@@ -3,6 +3,7 @@ package com.bangkit.jajanjalanseller.ui.auth.viewmodel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.bangkit.jajanjalanseller.data.SellerRepository
+
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -21,7 +22,7 @@ class AuthViewModel @Inject constructor (
         viewModelScope.launch {
             repository.getUser()
                 .collect { user ->
-                    _user.value = !user.userId.isNullOrEmpty()
+                    _user.value = user.userId.isNotEmpty()
                 }
         }
     }

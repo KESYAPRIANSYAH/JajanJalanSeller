@@ -1,23 +1,17 @@
 package com.bangkit.jajanjalanseller.data
 
-import android.util.Log
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MediatorLiveData
-import androidx.lifecycle.MutableLiveData
-import com.bangkit.jajanjalanseller.data.remote.response.LoginResponse
 import com.bangkit.jajanjalanseller.data.local.DataStoreManager
 import com.bangkit.jajanjalanseller.data.local.SellerModel
 import com.bangkit.jajanjalanseller.data.remote.response.CreateTokoResponse
+import com.bangkit.jajanjalanseller.data.remote.response.LoginResponse
 import com.bangkit.jajanjalanseller.data.remote.response.Seller
 import com.bangkit.jajanjalanseller.data.remote.response.SellerResponse
-import com.bangkit.jajanjalanseller.data.remote.response.Shop
 import com.bangkit.jajanjalanseller.data.remote.retrofit.ApiService
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.runBlocking
-import kotlinx.coroutines.withContext
 import okhttp3.MultipartBody
 import okhttp3.RequestBody
 import retrofit2.Call
@@ -32,11 +26,11 @@ class SellerRepository @Inject constructor(
 ) {
     private val resultLogin = MediatorLiveData<Result<LoginResponse>>()
     private val resultRegister = MediatorLiveData<Result<SellerResponse>>()
-
     private val _resultUser = MediatorLiveData<Result<SellerResponse>>()
     val resultUser: LiveData<Result<SellerResponse>> get() = _resultUser
-    val _seller = MediatorLiveData<SellerModel>()
+    private val _seller = MediatorLiveData<SellerModel>()
     val seller: LiveData<SellerModel> get() = _seller
+    private val resultcreateToko = MediatorLiveData<Result<CreateTokoResponse>>()
 
     fun login(email: String, password: String): LiveData<Result<LoginResponse>> {
         resultLogin.value = Result.Loading
@@ -50,7 +44,7 @@ class SellerRepository @Inject constructor(
                     if (response.isSuccessful) {
                         val responseData = response.body()!!
                         resultLogin.value = Result.Success(responseData)
-                        responseData?.userInfo?.token?.let { token ->
+                        responseData.userInfo?.token?.let { token ->
                             runBlocking {
                                 dataStore.saveToken(token)
                             }
@@ -68,30 +62,42 @@ class SellerRepository @Inject constructor(
         return resultLogin
     }
 
-    fun register(email: String, name: String, password: String, role: String): MediatorLiveData<Result<SellerResponse>> {
+    fun register(
+        email: String,
+        name: String,
+        password: String,
+        role: String
+    ): MediatorLiveData<Result<SellerResponse>> {
         resultRegister.value = Result.Loading
 
-        apiService.register(Seller(email = email, name = name, password = password, role = role)).enqueue(object : Callback<SellerResponse> {
-            override fun onResponse(call: Call<SellerResponse>, response: Response<SellerResponse>) {
-                if (response.isSuccessful) {
-                    val responseData = response.body()!!
-                    resultRegister.value =Result.Success(responseData)
-                } else {
-                    resultRegister.value = Result.Error(response.message())
+        apiService.register(Seller(email = email, name = name, password = password, role = role))
+            .enqueue(object : Callback<SellerResponse> {
+                override fun onResponse(
+                    call: Call<SellerResponse>,
+                    response: Response<SellerResponse>
+                ) {
+                    if (response.isSuccessful) {
+                        val responseData = response.body()!!
+                        responseData.sellerDetail?.token?.let { token ->
+                            runBlocking {
+                                dataStore.saveToken(token)
+                            }
+                        }
+                        resultRegister.value = Result.Success(responseData)
+                    } else {
+                        resultRegister.value = Result.Error(response.message())
+                    }
                 }
-            }
 
-            override fun onFailure(call: Call<SellerResponse>, t: Throwable) {
-                resultRegister.value = Result.Error(t.message.toString())
-            }
-        })
+                override fun onFailure(call: Call<SellerResponse>, t: Throwable) {
+                    resultRegister.value = Result.Error(t.message.toString())
+                }
+            })
         return resultRegister
     }
 
 
-
-
-  suspend fun saveUser(
+    suspend fun saveUser(
         userId: String,
         email: String,
         name: String,
@@ -108,42 +114,25 @@ class SellerRepository @Inject constructor(
         return dataStore.getUser
     }
 
-//    fun getToken() = runBlocking { dataStore.getUser.first().token }
+
+
 
     suspend fun createToko(
-        name: String,
-        address: String,
-        phone: String
-    ): LiveData<Result<CreateTokoResponse>> {
-        val result = MutableLiveData<Result<CreateTokoResponse>>()
-        result.postValue(Result.Loading)
+        name: RequestBody,
+        address: RequestBody,
+        phone: RequestBody,
+        lat: Float? = null,
+        lon: Float? = null,
+        description: RequestBody,
+        image: MultipartBody.Part,
+    ): Response<CreateTokoResponse> {
 
-        try {
-            val token = dataStore.getToken().firstOrNull() ?: ""
-            val response = withContext(Dispatchers.IO) {
-                apiService.createToko(
-                    token,
-                    Shop(
-                        name = name,
-                        address = address,
-                        phone = phone
-                    )
-                ).execute()
-            }
 
-            if (response.isSuccessful) {
-                val responseData = response.body()
-                result.postValue(Result.Success(responseData!!))
-            } else {
-                result.postValue(Result.Error(response.message()))
-            }
-        } catch (e: Exception) {
-            result.postValue(Result.Error(e.message ?: "An error occurred"))
-            Log.e("API_CALL_ERROR", "Error during API call", e)
-        }
+        return apiService.createShop( name, address, phone, lat, lon, description, image )
 
-        return result
     }
+
+
     suspend fun getDetailUser(userId: String): LiveData<Result<SellerResponse>> {
         val response = apiService.getUserDetail(userId)
         if (response.isSuccessful) {
@@ -154,8 +143,6 @@ class SellerRepository @Inject constructor(
         }
         return _resultUser
     }
-
-
 
 
     suspend fun clear() {

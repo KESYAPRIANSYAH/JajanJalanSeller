@@ -35,7 +35,6 @@ class SplashScreen : AppCompatActivity() {
             } else {
                 val intent = Intent(this, OnBoardingActivity::class.java)
                 startActivity(intent)
-
                 finish()
             }
         }

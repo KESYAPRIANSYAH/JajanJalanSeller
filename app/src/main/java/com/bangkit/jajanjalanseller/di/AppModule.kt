@@ -1,6 +1,5 @@
 package com.bangkit.jajanjalanseller.di
 
-
 import android.content.Context
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
@@ -12,7 +11,6 @@ import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
-import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.runBlocking
 import okhttp3.Interceptor
 import okhttp3.OkHttpClient
@@ -25,14 +23,39 @@ import javax.inject.Singleton
 @InstallIn(SingletonComponent::class)
 object AppModule {
 
+
+
     @Singleton
     @Provides
-    fun provideApiService(): ApiService {
+    fun provideApiService(authInterceptor: Interceptor): ApiService {
+        val okHttpClient = OkHttpClient.Builder()
+            .addInterceptor(authInterceptor)
+            .build()
+
         return Retrofit.Builder()
             .baseUrl("https://jajanjalan-api-wt3sy4qeta-et.a.run.app/")
+            .client(okHttpClient)
             .addConverterFactory(GsonConverterFactory.create())
             .build()
             .create(ApiService::class.java)
+    }
+
+
+    @Singleton
+    @Provides
+    fun provideAuthInterceptor(authManager: DataStoreManager): Interceptor {
+        return Interceptor { chain ->
+            val request = chain.request().newBuilder()
+
+            runBlocking {
+                authManager.getToken().let { token ->
+                    request.addHeader("Authorization", "Bearer $token")
+                }
+            }
+
+            val response: Response = chain.proceed(request.build())
+            response
+        }
     }
 
     @Singleton
@@ -43,7 +66,7 @@ object AppModule {
 
     @Singleton
     @Provides
-    fun provideDataStoreManager(dataStore: DataStore<Preferences>) : DataStoreManager {
+    fun provideDataStoreManager(dataStore: DataStore<Preferences>): DataStoreManager {
         return DataStoreManager(dataStore)
     }
 }

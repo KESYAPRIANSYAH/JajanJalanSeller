@@ -2,18 +2,18 @@ package com.bangkit.jajanjalanseller.ui.onBoarding
 
 import android.content.Context
 import android.content.Intent
-import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.view.ViewGroup
 import android.widget.Button
 import android.widget.ImageView
 import android.widget.LinearLayout
+import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 import androidx.core.view.get
 import androidx.viewpager2.widget.ViewPager2
-import com.bangkit.jajanjalanseller.MainActivity
 import com.bangkit.jajanjalanseller.R
 import com.bangkit.jajanjalanseller.databinding.ActivityOnBoardingBinding
+import com.bangkit.jajanjalanseller.ui.auth.AuthActivity
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
@@ -51,7 +51,7 @@ class OnBoardingActivity : AppCompatActivity() {
             if (onBoardingViewPager.currentItem + 1 < onBoardingAdapter.itemCount) {
                 onBoardingViewPager.currentItem = onBoardingViewPager.currentItem + 1
             } else {
-                val intent = Intent(this@OnBoardingActivity, MainActivity::class.java)
+                val intent = Intent(this@OnBoardingActivity, AuthActivity::class.java)
                 startActivity(intent)
                 onBoardingFinished()
                 finish()
