@@ -114,10 +114,11 @@ class SellerRepository @Inject constructor(
         return dataStore.getUser
     }
 
+    fun getToken() = runBlocking { dataStore.getUser.first().token }
 
 
-
-    suspend fun createToko(
+ fun createToko(
+        token: String,
         name: RequestBody,
         address: RequestBody,
         phone: RequestBody,
@@ -125,12 +126,9 @@ class SellerRepository @Inject constructor(
         lon: Float? = null,
         description: RequestBody,
         image: MultipartBody.Part,
-    ): Response<CreateTokoResponse> {
+    )
+       = apiService.createShop(token ,name, address, phone, lat, lon, description, image )
 
-
-        return apiService.createShop( name, address, phone, lat, lon, description, image )
-
-    }
 
 
     suspend fun getDetailUser(userId: String): LiveData<Result<SellerResponse>> {

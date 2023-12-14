@@ -1,14 +1,17 @@
 package com.bangkit.jajanjalanseller.ui.toko
 
+import android.Manifest
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.location.Location
+import android.net.Uri
 import android.os.Bundle
 import android.os.Looper
+import android.provider.Settings
 import android.util.Log
-import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
+import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
@@ -40,9 +43,13 @@ class CreateTokoActivity : AppCompatActivity() {
             if (isGranted) {
                 requestLocationUpdates()
             } else {
-                Toast.makeText(this, "Permission denied", Toast.LENGTH_SHORT).show()
+
+                showPermissionDeniedDialog()
+
+
             }
         }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = ActivityCreateTokoBinding.inflate(layoutInflater)
@@ -55,9 +62,10 @@ class CreateTokoActivity : AppCompatActivity() {
         }
 
 
-
     }
+
     private fun createToko() {
+        Log.d(TAG, "Creating Toko...")
         val name = createPartFromString(binding.edRegisterName.text.toString())
         val address = createPartFromString(binding.edRegisterAddres.text.toString())
         val phone = createPartFromString(binding.edRegisterPhone.text.toString())
@@ -65,14 +73,28 @@ class CreateTokoActivity : AppCompatActivity() {
         // Check if currentLocation is not null before using it
         val lat = currentLocation?.latitude
         val lon = currentLocation?.longitude
-        val imageUrl = "https://kaltimtoday.co/wp-content/uploads/2022/04/Para-pedagang-Pasar-Induk-mengeluhkan-semakin-menjamur-pasar-tumpah-di-Sangatta-Kutim.-Ella-Kaltimtoday.jpeg"
+        val imageUrl =
+            "https://kaltimtoday.co/wp-content/uploads/2022/04/Para-pedagang-Pasar-Induk-mengeluhkan-semakin-menjamur-pasar-tumpah-di-Sangatta-Kutim.-Ella-Kaltimtoday.jpeg"
         val imageRequestBody = imageUrl.toRequestBody("image/*".toMediaTypeOrNull())
-        val imagePart = MultipartBody.Part.createFormData("image", imageUrl, imageRequestBody)
+        val image = MultipartBody.Part.createFormData("image", imageUrl, imageRequestBody)
 
 
 
-        viewModel.createToko( name, address, phone, lat?.toFloat(), lon?.toFloat(), description, imagePart)
-
+viewModel.getUser().observe(this){
+    viewModel.getUser().observe(this) { user ->
+        Log.d(TAG, "User Token: ${user.token}")
+        viewModel.createToko(
+            user.token,
+            name,
+            address,
+            phone,
+            lat?.toFloat(),
+            lon?.toFloat(),
+            description,
+            image
+        )
+    }
+}
         viewModel.createStore.observe(this) { response ->
             binding.progressIndicator.show()
             if (response != null) {
@@ -81,35 +103,43 @@ class CreateTokoActivity : AppCompatActivity() {
                 intent.flags = Intent.FLAG_ACTIVITY_CLEAR_TASK or Intent.FLAG_ACTIVITY_NEW_TASK
                 startActivity(intent)
                 finish()
-            }else{
-                binding.progressIndicator.hide()
-                showToast(getString(R.string.register_empty))
+            } else {
+                binding.progressIndicator.show()
+                AlertDialog.Builder(
+                    this
+                ).apply {
+                    setTitle("Create Toko")
+                    setMessage(getString(R.string.createtoko_fail))
+                    create()
+                    show()
+                }
             }
         }
     }
-
 
 
     private fun checkLocationPermission() {
         when (PackageManager.PERMISSION_GRANTED) {
             ContextCompat.checkSelfPermission(
                 this,
-                android.Manifest.permission.ACCESS_FINE_LOCATION
+                Manifest.permission.ACCESS_FINE_LOCATION
             ) -> {
                 requestLocationUpdates()
             }
+
             else -> {
-                requestPermissionLauncher.launch(android.Manifest.permission.ACCESS_FINE_LOCATION)
+                requestPermissionLauncher.launch(Manifest.permission.ACCESS_FINE_LOCATION)
             }
         }
     }
+
     private fun requestLocationUpdates() {
         if (ActivityCompat.checkSelfPermission(
                 this,
-                android.Manifest.permission.ACCESS_FINE_LOCATION
+                Manifest.permission.ACCESS_FINE_LOCATION
             ) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(
                 this,
-                android.Manifest.permission.ACCESS_COARSE_LOCATION
+                Manifest.permission.ACCESS_COARSE_LOCATION
             ) != PackageManager.PERMISSION_GRANTED
         ) {
             return
@@ -121,7 +151,7 @@ class CreateTokoActivity : AppCompatActivity() {
 
         val locationCallback = object : LocationCallback() {
             override fun onLocationResult(p0: LocationResult) {
-               p0.lastLocation?.let { location ->
+                p0.lastLocation?.let { location ->
                     currentLocation = location
                     Log.d(TAG, "Current Location: $currentLocation")
                 }
@@ -134,17 +164,41 @@ class CreateTokoActivity : AppCompatActivity() {
             Looper.getMainLooper()
         )
     }
+
     private fun createPartFromString(string: String): RequestBody {
         return string.toRequestBody(MultipartBody.FORM)
     }
+
     companion object {
         private const val TAG = "CreateTokoActivity"
 
 
     }
-    private fun showToast(message: String) {
-        Toast.makeText(this, message, Toast.LENGTH_SHORT).show()
+
+
+
+    private fun showPermissionDeniedDialog() {
+        val builder = AlertDialog.Builder(this)
+        builder.setTitle("Location Permission Required")
+        builder.setMessage("Please grant location permission to use this feature.")
+        builder.setPositiveButton("Open Settings") { dialog, _ ->
+            openAppSettings()
+            dialog.dismiss()
+        }
+        builder.setNegativeButton("Cancel") { dialog, _ ->
+            dialog.dismiss()
+        }
+        builder.show()
     }
+
+    private fun openAppSettings() {
+        val intent = Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS)
+        val uri: Uri = Uri.fromParts("package", packageName, null)
+        intent.data = uri
+        startActivity(intent)
+    }
+
+
 }
 
 

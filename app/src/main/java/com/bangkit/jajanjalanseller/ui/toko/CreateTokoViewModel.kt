@@ -1,20 +1,19 @@
 package com.bangkit.jajanjalanseller.ui.toko
 
-import android.content.ContentValues.TAG
-import android.util.Log
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
-import androidx.lifecycle.viewModelScope
+import androidx.lifecycle.asLiveData
 import com.bangkit.jajanjalanseller.data.SellerRepository
 import com.bangkit.jajanjalanseller.data.remote.response.CreateTokoResponse
-import com.google.gson.Gson
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.launch
 import okhttp3.MultipartBody
 import okhttp3.RequestBody
-import retrofit2.HttpException
+import retrofit2.Callback
+import retrofit2.Call
+import retrofit2.Response
 import javax.inject.Inject
+
 
 @HiltViewModel
 class CreateTokoViewModel @Inject constructor(
@@ -22,38 +21,46 @@ class CreateTokoViewModel @Inject constructor(
 ) : ViewModel() {
 
     private val _createStore = MutableLiveData<CreateTokoResponse>()
-    val createStore: LiveData<CreateTokoResponse> =_createStore
+    val createStore: LiveData<CreateTokoResponse> = _createStore
     private val _isLoading = MutableLiveData<Boolean>()
     val isLoading: LiveData<Boolean> = _isLoading
-    fun createToko(
+    private val errorMessage = MutableLiveData<String>()
+    val getErrorMessage: LiveData<String> = errorMessage
+
+  fun createToko(
+        token: String,
         name: RequestBody,
         address: RequestBody,
         phone: RequestBody,
         lat: Float? = null,
         lon: Float? = null,
         description: RequestBody,
-        image: MultipartBody.Part
+        image: MultipartBody.Part,
 
-    ) {
+        ) {
 
-        _isLoading.value = true
-        viewModelScope.launch {
-            try {
-                val response = sellerRepository.createToko(name, address, phone,lat,lon,description,image)
-                _createStore.postValue(response.body())
+       val response = sellerRepository.createToko(token,name,address,phone,lat,lon,description,image).enqueue(object : Callback<CreateTokoResponse>{
+           override fun onResponse(
+               call:Call<CreateTokoResponse>,
+               response: Response<CreateTokoResponse>
+           ) {
+               _isLoading.value = true
 
-            } catch (e: HttpException) {
-                val jsonInString = e.response()?.errorBody()?.string()
-                val errorBody = Gson().fromJson(jsonInString, CreateTokoResponse::class.java)
-                val errorMessage = errorBody.message
-                _createStore.postValue(errorBody)
-                _isLoading.postValue(false)
-                Log.d(TAG, "Create Store gagal: $errorMessage")
+               if (response.isSuccessful) {
+                  _createStore.value = response.body()
+               }
 
-            }
-        }
+           }
 
+           override fun onFailure(call: Call<CreateTokoResponse>, t: Throwable) {
+               _isLoading.value = true
+               val error = "Terjadi kesalahan: ${t.message.toString()}"
+               errorMessage.postValue(error)
+           }
+
+       })
     }
+    fun getUser() = sellerRepository.getUser().asLiveData()
 }
 
 

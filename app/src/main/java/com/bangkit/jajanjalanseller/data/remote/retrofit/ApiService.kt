@@ -13,6 +13,7 @@ import retrofit2.http.Body
 import retrofit2.http.Field
 import retrofit2.http.FormUrlEncoded
 import retrofit2.http.GET
+import retrofit2.http.Header
 import retrofit2.http.Multipart
 import retrofit2.http.PATCH
 import retrofit2.http.POST
@@ -29,9 +30,11 @@ interface ApiService {
     fun login(
         @Body user: Seller
     ): Call<LoginResponse>
+
     @Multipart
     @POST("penjual/create")
-    suspend fun createShop(
+    fun createShop(
+        @Header("Authorization") token: String,
         @Part("name") name: RequestBody,
         @Part("address") address: RequestBody,
         @Part("phone") phone: RequestBody,
@@ -39,7 +42,9 @@ interface ApiService {
         @Part("lon") lon: Float? = null,
         @Part("description") description: RequestBody,
         @Part image: MultipartBody.Part
-    ): Response<CreateTokoResponse>
+    ): Call<CreateTokoResponse>
+
+
 
 
     @FormUrlEncoded

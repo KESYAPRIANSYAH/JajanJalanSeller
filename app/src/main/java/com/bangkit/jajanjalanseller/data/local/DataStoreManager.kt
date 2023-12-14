@@ -49,18 +49,7 @@ class DataStoreManager @Inject constructor(
         }
     }
 
-//    fun getSession(): Flow<SellerModel> {
-//        return dataStore.data.map { preferences ->
-//            SellerModel(
-//                preferences[USER_ID] ?: "",
-//                preferences[USER_EMAIL] ?: "",
-//                preferences[USER_NAME] ?: "",
-//                preferences[USER_IMAGE] ?: "",
-//                preferences[USER_IMAGE] ?: "",
-//                preferences[USER_PASSWORD] ?: "",
-//            )
-//        }
-//    }
+
 
     val getUser: Flow<SellerModel> = dataStore.data
         .catch { exception ->

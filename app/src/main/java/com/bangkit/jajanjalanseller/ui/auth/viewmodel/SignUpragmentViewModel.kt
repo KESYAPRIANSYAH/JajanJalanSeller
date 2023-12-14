@@ -11,5 +11,5 @@ class SignUpragmentViewModel @Inject constructor (
     private val repository: SellerRepository
 ): ViewModel() {
 
-    suspend fun register(email: String, name: String, password : String, role: String) = repository.register(email, name, password, role)
+    fun register(email: String, name: String, password : String, role: String) = repository.register(email, name, password, role)
 }

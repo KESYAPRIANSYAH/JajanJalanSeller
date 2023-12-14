@@ -45,7 +45,7 @@ class  SignUpFragment: Fragment() {
         }
     }
 
-    private suspend fun observeRegister(email: String, name: String, password: String, role: String) {
+    private fun observeRegister(email: String, name: String, password: String, role: String) {
         viewModel.register(email, name, password, role).observe(viewLifecycleOwner) {
             when (it) {
                 is Result.Loading -> {
