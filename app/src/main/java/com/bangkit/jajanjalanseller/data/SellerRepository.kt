@@ -13,7 +13,6 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.runBlocking
 import okhttp3.MultipartBody
-import okhttp3.RequestBody
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
@@ -117,18 +116,16 @@ class SellerRepository @Inject constructor(
     fun getToken() = runBlocking { dataStore.getUser.first().token }
 
 
- fun createToko(
-        token: String,
-        name: RequestBody,
-        address: RequestBody,
-        phone: RequestBody,
+ suspend fun createToko(
+        name: String,
+        address: String,
+        phone: String,
         lat: Float? = null,
         lon: Float? = null,
-        description: RequestBody,
+        description: String,
         image: MultipartBody.Part,
     )
-       = apiService.createShop(token ,name, address, phone, lat, lon, description, image )
-
+       = apiService.createPenjual(name, address, phone, lat, lon, description, image )
 
 
     suspend fun getDetailUser(userId: String): LiveData<Result<SellerResponse>> {

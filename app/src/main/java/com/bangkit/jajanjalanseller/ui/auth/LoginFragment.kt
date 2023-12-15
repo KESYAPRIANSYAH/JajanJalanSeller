@@ -58,6 +58,10 @@ class LoginFragment : Fragment() {
                 }
 
 
+                else -> {
+                    Toast.makeText(requireContext(), "Akun tidak terdaftar", Toast.LENGTH_SHORT).show()
+
+                }
             }
         }
     }
@@ -99,7 +103,7 @@ class LoginFragment : Fragment() {
                     )
                 }
                 is Result.Error -> {
-                    Toast.makeText(requireContext(), response.error, Toast.LENGTH_SHORT).show()
+                    Toast.makeText(requireContext(), response.message, Toast.LENGTH_SHORT).show()
                 }
 
                 else -> {}

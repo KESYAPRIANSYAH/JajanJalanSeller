@@ -7,8 +7,12 @@ import android.location.Location
 import android.net.Uri
 import android.os.Bundle
 import android.os.Looper
+import android.provider.OpenableColumns
 import android.provider.Settings
 import android.util.Log
+import android.view.View
+import android.widget.Toast
+import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
 import androidx.appcompat.app.AlertDialog
@@ -17,27 +21,31 @@ import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import com.bangkit.jajanjalanseller.MainActivity
 import com.bangkit.jajanjalanseller.R
+import com.bangkit.jajanjalanseller.data.Result
 import com.bangkit.jajanjalanseller.databinding.ActivityCreateTokoBinding
+import com.bangkit.jajanjalanseller.utils.reduceFileImage
+import com.bangkit.jajanjalanseller.utils.uriToFile
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationCallback
 import com.google.android.gms.location.LocationRequest
 import com.google.android.gms.location.LocationResult
 import com.google.android.gms.location.LocationServices
 import dagger.hilt.android.AndroidEntryPoint
-import okhttp3.MediaType.Companion.toMediaTypeOrNull
+import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.MultipartBody
 import okhttp3.RequestBody
+import okhttp3.RequestBody.Companion.asRequestBody
 import okhttp3.RequestBody.Companion.toRequestBody
-
 
 @Suppress("DEPRECATION")
 @AndroidEntryPoint
 class CreateTokoActivity : AppCompatActivity() {
-
+    private var currentImageUri: Uri? = null
     private lateinit var binding: ActivityCreateTokoBinding
     private val viewModel: CreateTokoViewModel by viewModels()
     private var currentLocation: Location? = null
     private lateinit var fusedLocationClient: FusedLocationProviderClient
+
     private val requestPermissionLauncher =
         registerForActivityResult(ActivityResultContracts.RequestPermission()) { isGranted ->
             if (isGranted) {
@@ -60,61 +68,79 @@ class CreateTokoActivity : AppCompatActivity() {
         binding.btnConfirm.setOnClickListener {
             createToko()
         }
-
+        binding.btnUplpad.setOnClickListener { startGallery() }
 
     }
 
     private fun createToko() {
-        Log.d(TAG, "Creating Toko...")
-        val name = createPartFromString(binding.edRegisterName.text.toString())
-        val address = createPartFromString(binding.edRegisterAddres.text.toString())
-        val phone = createPartFromString(binding.edRegisterPhone.text.toString())
-        val description = createPartFromString(binding.edDescrption.text.toString())
-        // Check if currentLocation is not null before using it
-        val lat = currentLocation?.latitude
-        val lon = currentLocation?.longitude
-        val imageUrl =
-            "https://kaltimtoday.co/wp-content/uploads/2022/04/Para-pedagang-Pasar-Induk-mengeluhkan-semakin-menjamur-pasar-tumpah-di-Sangatta-Kutim.-Ella-Kaltimtoday.jpeg"
-        val imageRequestBody = imageUrl.toRequestBody("image/*".toMediaTypeOrNull())
-        val image = MultipartBody.Part.createFormData("image", imageUrl, imageRequestBody)
+        currentImageUri?.let { uri ->
 
+            val name = binding.edRegisterName.text.toString()
+            val address = binding.edRegisterAddres.text.toString()
+            val phone = binding.edRegisterPhone.text.toString()
+            val description = binding.edDescrption.text.toString()
+            // Check if currentLocation is not null before using it
+            val lat = currentLocation?.latitude
+            val lon = currentLocation?.longitude
+            val imageFile = uriToFile(uri, this).reduceFileImage()
+            Log.d("Image File", "showImage: ${imageFile.path}")
+            val requestImageFile = imageFile.asRequestBody("image/*".toMediaType())
+            val image = MultipartBody.Part.createFormData(
+                "photo",
+                imageFile.name,
+                requestImageFile
+            )
 
+            viewModel.createToko(
+                name,
+                address,
+                phone,
+                lat?.toFloat(),
+                lon?.toFloat(),
+                description,
+                image
+            )
 
-viewModel.getUser().observe(this){
-    viewModel.getUser().observe(this) { user ->
-        Log.d(TAG, "User Token: ${user.token}")
-        viewModel.createToko(
-            user.token,
-            name,
-            address,
-            phone,
-            lat?.toFloat(),
-            lon?.toFloat(),
-            description,
-            image
-        )
-    }
-}
-        viewModel.createStore.observe(this) { response ->
-            binding.progressIndicator.show()
-            if (response != null) {
-                binding.progressIndicator.hide()
-                val intent = Intent(this, MainActivity::class.java)
-                intent.flags = Intent.FLAG_ACTIVITY_CLEAR_TASK or Intent.FLAG_ACTIVITY_NEW_TASK
-                startActivity(intent)
-                finish()
-            } else {
+            viewModel.createStore.observe(this) { result ->
                 binding.progressIndicator.show()
-                AlertDialog.Builder(
-                    this
-                ).apply {
-                    setTitle("Create Toko")
-                    setMessage(getString(R.string.createtoko_fail))
-                    create()
-                    show()
+                when (result) {
+                    is Result.Success -> {
+                        val response = result.data // Get the CreateTokoResponse
+                        binding.progressIndicator.hide()
+                        val intent = Intent(this, MainActivity::class.java)
+                        intent.flags =
+                            Intent.FLAG_ACTIVITY_CLEAR_TASK or Intent.FLAG_ACTIVITY_NEW_TASK
+                        startActivity(intent)
+                        finish()
+                    }
+
+                    is Result.Error -> {
+                        val errorMessage = result.message // Get the error message
+                        // Handle error
+                    }
+
+                    is Result.Loading -> {
+                        binding.progressIndicator.show()
+                        AlertDialog.Builder(
+                            this
+                        ).apply {
+                            setTitle("Create Toko")
+                            setMessage(getString(R.string.createtoko_fail))
+                            create()
+                            show()
+                        }
+                    }
+
+                    else -> {
+
+                        Toast.makeText(this, "Daftar Toko Gaga;", Toast.LENGTH_SHORT).show()
+                    }
                 }
             }
+
+
         }
+
     }
 
 
@@ -176,7 +202,6 @@ viewModel.getUser().observe(this){
     }
 
 
-
     private fun showPermissionDeniedDialog() {
         val builder = AlertDialog.Builder(this)
         builder.setTitle("Location Permission Required")
@@ -198,9 +223,39 @@ viewModel.getUser().observe(this){
         startActivity(intent)
     }
 
+    private fun startGallery() {
+        launcherGallery.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly))
+    }
+
+    private val launcherGallery = registerForActivityResult(
+        ActivityResultContracts.PickVisualMedia()
+    ) { uri: Uri? ->
+        if (uri != null) {
+
+            currentImageUri = uri
+            showNameImage()
+        } else {
+            Log.d("Photo Picker", "No media selected")
+        }
+    }
+
+    private fun showNameImage() {
+        currentImageUri?.let { uri ->
+            val imageName = getFileName(uri)
+            Log.d("Image URI", "showImage: $uri")
+            binding.tvStoreImage.text = "Uploaded Image: $imageName"
+            binding.tvStoreImage.visibility = View.VISIBLE
+        }
+    }
+
+    private fun getFileName(uri: Uri): String {
+        val cursor = contentResolver.query(uri, null, null, null, null)
+        return cursor?.use {
+            val nameIndex = it.getColumnIndex(OpenableColumns.DISPLAY_NAME)
+            it.moveToFirst()
+            it.getString(nameIndex)
+        } ?: "Unknown"
+    }
 
 }
-
-
-
 

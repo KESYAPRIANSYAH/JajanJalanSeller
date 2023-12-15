@@ -101,6 +101,16 @@ dependencies {
 // gmap service
     implementation("com.google.android.gms:play-services-maps:18.2.0")
     implementation("com.google.android.gms:play-services-location:21.0.1")
+
+
+    //permissions
+
+    implementation("pub.devrel:easypermissions:3.0.0")
+
+    // json web token
+    implementation ("io.jsonwebtoken:jjwt-api:0.11.2")
+    implementation ("io.jsonwebtoken:jjwt-impl:0.11.2")
+    implementation ("io.jsonwebtoken:jjwt-jackson:0.11.2")
 }
 kapt {
     correctErrorTypes = true

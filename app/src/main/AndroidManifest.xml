@@ -7,12 +7,14 @@
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
     <uses-permission android:name="android.permission.ACCESS_BACKGROUND_LOCATION" />
+
     <uses-feature android:name="android.hardware.camera" />
+
     <uses-permission android:name="android.permission.CAMERA" />
-    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE"
-
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+    <uses-permission
+        android:name="android.permission.READ_EXTERNAL_STORAGE"
         android:maxSdkVersion="32" />
-
 
     <application
         android:name=".JajanJalanSeller"
@@ -25,6 +27,16 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.JajanJalanSeller"
         tools:targetApi="31">
+        <service
+            android:name=".serviceLocation.LocationUpdatesService"
+            android:enabled="true"
+
+          >
+
+        </service>
+
+
+
         <activity
             android:name=".ui.toko.CreateTokoActivity"
             android:exported="false" />
@@ -45,9 +57,7 @@
         </activity>
         <activity
             android:name=".MainActivity"
-            android:exported="true">
-
-        </activity>
+            android:exported="true" />
 
         <meta-data
             android:name="preloaded_fonts"

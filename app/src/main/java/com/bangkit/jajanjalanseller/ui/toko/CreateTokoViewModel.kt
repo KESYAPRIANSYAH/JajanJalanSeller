@@ -1,17 +1,19 @@
 package com.bangkit.jajanjalanseller.ui.toko
 
+import android.content.ContentValues.TAG
+import android.util.Log
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
-import androidx.lifecycle.asLiveData
+import androidx.lifecycle.viewModelScope
+import com.bangkit.jajanjalanseller.data.Result
 import com.bangkit.jajanjalanseller.data.SellerRepository
 import com.bangkit.jajanjalanseller.data.remote.response.CreateTokoResponse
+import com.google.gson.Gson
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.launch
 import okhttp3.MultipartBody
-import okhttp3.RequestBody
-import retrofit2.Callback
-import retrofit2.Call
-import retrofit2.Response
+import retrofit2.HttpException
 import javax.inject.Inject
 
 
@@ -20,47 +22,46 @@ class CreateTokoViewModel @Inject constructor(
     private val sellerRepository: SellerRepository
 ) : ViewModel() {
 
-    private val _createStore = MutableLiveData<CreateTokoResponse>()
-    val createStore: LiveData<CreateTokoResponse> = _createStore
+    private val _createStore = MutableLiveData<Result<CreateTokoResponse>>()
+    val createStore: LiveData<Result<CreateTokoResponse>> = _createStore
+
     private val _isLoading = MutableLiveData<Boolean>()
     val isLoading: LiveData<Boolean> = _isLoading
     private val errorMessage = MutableLiveData<String>()
     val getErrorMessage: LiveData<String> = errorMessage
 
-  fun createToko(
-        token: String,
-        name: RequestBody,
-        address: RequestBody,
-        phone: RequestBody,
+    fun createToko(
+
+        name: String,
+        address: String,
+        phone: String,
         lat: Float? = null,
         lon: Float? = null,
-        description: RequestBody,
+        description: String,
         image: MultipartBody.Part,
+    ) {
 
-        ) {
+        _isLoading.value = true
+        viewModelScope.launch {
 
-       val response = sellerRepository.createToko(token,name,address,phone,lat,lon,description,image).enqueue(object : Callback<CreateTokoResponse>{
-           override fun onResponse(
-               call:Call<CreateTokoResponse>,
-               response: Response<CreateTokoResponse>
-           ) {
-               _isLoading.value = true
+            try {
+                val response =
+                    sellerRepository.createToko(name, address, phone, lat, lon, description, image)
+                _createStore.postValue(Result.Success(response))
+                _isLoading.value = false
+            } catch (e: HttpException) {
+                val jsonInString = e.response()?.errorBody()?.string()
+                val errorBody = Gson().fromJson(jsonInString, CreateTokoResponse::class.java)
+                val errorMessage = errorBody?.message
 
-               if (response.isSuccessful) {
-                  _createStore.value = response.body()
-               }
+                _isLoading.postValue(false)
+                _createStore.postValue(Result.Error(errorMessage))
 
-           }
+                Log.d(TAG, "Upload File Error: $errorMessage")
 
-           override fun onFailure(call: Call<CreateTokoResponse>, t: Throwable) {
-               _isLoading.value = true
-               val error = "Terjadi kesalahan: ${t.message.toString()}"
-               errorMessage.postValue(error)
-           }
+            }
+        }
 
-       })
     }
-    fun getUser() = sellerRepository.getUser().asLiveData()
+
 }
-
-

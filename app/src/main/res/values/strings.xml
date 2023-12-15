@@ -38,6 +38,9 @@
     <string name="buattoko">gambar buat toko\n</string>
     <string name="register_shop">Mulai Daftarkan Usaha Anda</string>
     <string name="number_phone">Nomor Telephone</string>
+    <string name="imagesotre">Unggah Gambar Profil Store</string>
+    <string name="buttonupladimage">ButtonUpladImage</string>
+    <string name="tambahkan_detail_toko">tambahkan detail toko</string>
 
 
 </resources>

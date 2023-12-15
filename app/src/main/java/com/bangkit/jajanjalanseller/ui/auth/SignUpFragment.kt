@@ -20,7 +20,7 @@ import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
 
 @AndroidEntryPoint
-class  SignUpFragment: Fragment() {
+class SignUpFragment : Fragment() {
 
     private var _binding: FragmentSignUpfragmentBinding? = null
     private val binding get() = _binding!!
@@ -52,6 +52,7 @@ class  SignUpFragment: Fragment() {
                     binding.progressIndicator.show()
                     binding.btnRegister.isEnabled = false
                 }
+
                 is Result.Success -> {
                     Log.d("User Detail", it.data.sellerDetail.toString())
                     binding.progressIndicator.hide()
@@ -60,19 +61,27 @@ class  SignUpFragment: Fragment() {
                         setMessage(getString(R.string.register_succeed))
                         setPositiveButton(getString(R.string.continue_login)) { _, _ ->
                             val intent = Intent(requireContext(), AuthActivity::class.java)
-                            intent.flags = Intent.FLAG_ACTIVITY_CLEAR_TASK or Intent.FLAG_ACTIVITY_NEW_TASK
+                            intent.flags =
+                                Intent.FLAG_ACTIVITY_CLEAR_TASK or Intent.FLAG_ACTIVITY_NEW_TASK
                             startActivity(intent)
                         }
                         create()
                         show()
                     }
                 }
-                is Result.Error -> {
+
+                is Result.Errorr -> {
                     binding.progressIndicator.hide()
                     binding.btnRegister.isEnabled = true
                     Toast.makeText(requireContext(), it.error, Toast.LENGTH_LONG).show()
                     Log.d("Error Register", it.error)
-                    Toast.makeText(requireContext(), "Akun tidak terdaftar", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(requireContext(), "Akun tidak terdaftar", Toast.LENGTH_SHORT)
+                        .show()
+                }
+
+                else -> {
+                    Toast.makeText(requireContext(), "Akun tidak terdaftar", Toast.LENGTH_SHORT)
+                        .show()
                 }
             }
         }
@@ -103,7 +112,8 @@ class  SignUpFragment: Fragment() {
                     show()
                 }
             } else {
-                Toast.makeText(requireContext(), "$email, $name, $password !", Toast.LENGTH_LONG).show()
+                Toast.makeText(requireContext(), "$email, $name, $password !", Toast.LENGTH_LONG)
+                    .show()
                 lifecycleScope.launch {
                     observeRegister(email, name, password, "penjual")
                 }

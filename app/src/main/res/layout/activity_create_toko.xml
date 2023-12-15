@@ -76,6 +76,31 @@
 
         </com.google.android.material.textfield.TextInputLayout>
 
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:orientation="horizontal"
+            android:layout_marginHorizontal="@dimen/_16sdp"
+            >
+
+
+
+            <TextView
+                android:id="@+id/tv_storeImage"
+                android:layout_height="wrap_content"
+                android:layout_weight="5"
+                android:text="@string/imagesotre"
+                android:layout_width="0dp"
+                android:textSize="@dimen/_13ssp"/>
+
+            <ImageButton
+                android:id="@+id/btn_Uplpad"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:src="@drawable/ic_image"
+                android:contentDescription="@string/buttonupladimage" />
+        </LinearLayout>
+
         <com.google.android.material.textfield.TextInputLayout
             android:id="@+id/tl_addres"
             android:layout_width="match_parent"
@@ -136,7 +161,7 @@
             android:focusable="false"
             android:focusableInTouchMode="false"
             app:boxStrokeColor="@color/blue"
-            app:startIconDrawable="@drawable/ic_phone"
+            app:startIconDrawable="@drawable/ic_description"
             tools:layout_editor_absoluteX="21dp"
             tools:layout_editor_absoluteY="421dp">
 
@@ -148,7 +173,7 @@
 
                 android:autofillHints=""
                 android:fontFamily="@font/roboto"
-                android:hint="@string/number_phone"
+                android:hint="@string/tambahkan_detail_toko"
                 android:inputType="text"
                 android:paddingHorizontal="@dimen/_8sdp" />
 
