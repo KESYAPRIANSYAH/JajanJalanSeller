@@ -117,6 +117,7 @@ class SellerRepository @Inject constructor(
 
 
     suspend fun createToko(
+        token:String,
         name: String,
         address: String,
         phone: String,
@@ -124,13 +125,8 @@ class SellerRepository @Inject constructor(
         lon: Float? = null,
         description: String,
         image: MultipartBody.Part
-    ): Response<CreateTokoResponse> {
-        try {
-            return apiService.createPenjual(name, address, phone, lat, lon, description, image)
-        } catch (e: Exception) {
-
-            throw e
-        }
+    ): CreateTokoResponse{
+        return apiService.createPenjual(token ,name, address, phone, lat, lon, description, image)
     }
 
     suspend fun getDetailUser(userId: String): LiveData<Result<SellerResponse>> {

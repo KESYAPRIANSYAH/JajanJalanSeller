@@ -20,7 +20,6 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import com.bangkit.jajanjalanseller.MainActivity
-import com.bangkit.jajanjalanseller.R
 import com.bangkit.jajanjalanseller.data.Result
 import com.bangkit.jajanjalanseller.databinding.ActivityCreateTokoBinding
 import com.bangkit.jajanjalanseller.utils.reduceFileImage
@@ -33,9 +32,7 @@ import com.google.android.gms.location.LocationServices
 import dagger.hilt.android.AndroidEntryPoint
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.MultipartBody
-import okhttp3.RequestBody
 import okhttp3.RequestBody.Companion.asRequestBody
-import okhttp3.RequestBody.Companion.toRequestBody
 
 @Suppress("DEPRECATION")
 @AndroidEntryPoint
@@ -90,6 +87,9 @@ class CreateTokoActivity : AppCompatActivity() {
                 requestImageFile
             )
 
+
+
+
             viewModel.createToko(
                 name,
                 address,
@@ -101,50 +101,23 @@ class CreateTokoActivity : AppCompatActivity() {
             )
 
             viewModel.createStore.observe(this) { result ->
-                binding.progressIndicator.show()
                 when (result) {
                     is Result.Success -> {
-                        val response = result.data // Get the CreateTokoResponse
                         binding.progressIndicator.hide()
-                        val intent = Intent(this, MainActivity::class.java)
-                        intent.flags =
-                            Intent.FLAG_ACTIVITY_CLEAR_TASK or Intent.FLAG_ACTIVITY_NEW_TASK
-                        startActivity(intent)
-                        finish()
+                        // Navigasi ke MainActivity
+                        navigateToMainActivity()
                     }
 
                     is Result.Error -> {
                         binding.progressIndicator.hide()
-                        val errorMessage = result.message // Get the error message
-                        Toast.makeText(this, "Daftar Toko Gagal;", Toast.LENGTH_SHORT).show()
-                        AlertDialog.Builder(
-                            this
-                        ).apply {
-                            setTitle("Gagal Mmebuat Lapak")
-                            setMessage(getString(R.string.createtoko_fail))
-                            create()
-                            show()
-                        }
-                        // Handle error
+                        result.message?.let { showErrorDialog(it) }
                     }
 
                     is Result.Loading -> {
                         binding.progressIndicator.show()
-                        AlertDialog.Builder(
-                            this
-                        ).apply {
-                            setTitle("Create Toko")
-                            setMessage(getString(R.string.createtoko_fail))
-                            create()
-                            show()
-                        }
                     }
 
-
-                    else -> {
-                        Toast.makeText(this, "Daftar Toko Gagal;", Toast.LENGTH_SHORT).show()
-
-                    }
+                    else -> {}
                 }
             }
 
@@ -153,6 +126,22 @@ class CreateTokoActivity : AppCompatActivity() {
 
     }
 
+    private fun navigateToMainActivity() {
+        val intent = Intent(this, MainActivity::class.java)
+        intent.flags = Intent.FLAG_ACTIVITY_CLEAR_TASK or Intent.FLAG_ACTIVITY_NEW_TASK
+        startActivity(intent)
+        finish()
+    }
+
+    private fun showErrorDialog(errorMessage: String) {
+        Toast.makeText(this, "Daftar Toko Gagal;", Toast.LENGTH_SHORT).show()
+        AlertDialog.Builder(this).apply {
+            setTitle("Gagal Membuat Lapak")
+            setMessage(errorMessage)
+            create()
+            show()
+        }
+    }
 
     private fun checkLocationPermission() {
         when (PackageManager.PERMISSION_GRANTED) {
@@ -201,9 +190,7 @@ class CreateTokoActivity : AppCompatActivity() {
         )
     }
 
-    private fun createPartFromString(string: String): RequestBody {
-        return string.toRequestBody(MultipartBody.FORM)
-    }
+
 
     companion object {
         private const val TAG = "CreateTokoActivity"
