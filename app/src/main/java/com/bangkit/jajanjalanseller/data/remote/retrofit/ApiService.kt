@@ -41,7 +41,7 @@ interface ApiService {
         @Part("lon") lon: Float?,
         @Part("description") description: String,
         @Part image: MultipartBody.Part,
-    ):CreateTokoResponse
+    ) : Response <CreateTokoResponse>
 
 
     @FormUrlEncoded

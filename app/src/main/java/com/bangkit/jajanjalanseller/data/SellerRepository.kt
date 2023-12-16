@@ -116,17 +116,22 @@ class SellerRepository @Inject constructor(
     fun getToken() = runBlocking { dataStore.getUser.first().token }
 
 
- suspend fun createToko(
+    suspend fun createToko(
         name: String,
         address: String,
         phone: String,
         lat: Float? = null,
         lon: Float? = null,
         description: String,
-        image: MultipartBody.Part,
-    )
-       = apiService.createPenjual(name, address, phone, lat, lon, description, image )
+        image: MultipartBody.Part
+    ): Response<CreateTokoResponse> {
+        try {
+            return apiService.createPenjual(name, address, phone, lat, lon, description, image)
+        } catch (e: Exception) {
 
+            throw e
+        }
+    }
 
     suspend fun getDetailUser(userId: String): LiveData<Result<SellerResponse>> {
         val response = apiService.getUserDetail(userId)

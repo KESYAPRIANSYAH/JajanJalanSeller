@@ -79,7 +79,6 @@ class CreateTokoActivity : AppCompatActivity() {
             val address = binding.edRegisterAddres.text.toString()
             val phone = binding.edRegisterPhone.text.toString()
             val description = binding.edDescrption.text.toString()
-            // Check if currentLocation is not null before using it
             val lat = currentLocation?.latitude
             val lon = currentLocation?.longitude
             val imageFile = uriToFile(uri, this).reduceFileImage()
@@ -115,7 +114,17 @@ class CreateTokoActivity : AppCompatActivity() {
                     }
 
                     is Result.Error -> {
+                        binding.progressIndicator.hide()
                         val errorMessage = result.message // Get the error message
+                        Toast.makeText(this, "Daftar Toko Gagal;", Toast.LENGTH_SHORT).show()
+                        AlertDialog.Builder(
+                            this
+                        ).apply {
+                            setTitle("Gagal Mmebuat Lapak")
+                            setMessage(getString(R.string.createtoko_fail))
+                            create()
+                            show()
+                        }
                         // Handle error
                     }
 
@@ -131,9 +140,10 @@ class CreateTokoActivity : AppCompatActivity() {
                         }
                     }
 
-                    else -> {
 
-                        Toast.makeText(this, "Daftar Toko Gaga;", Toast.LENGTH_SHORT).show()
+                    else -> {
+                        Toast.makeText(this, "Daftar Toko Gagal;", Toast.LENGTH_SHORT).show()
+
                     }
                 }
             }

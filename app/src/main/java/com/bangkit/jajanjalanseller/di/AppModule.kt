@@ -14,6 +14,7 @@ import dagger.hilt.components.SingletonComponent
 import kotlinx.coroutines.runBlocking
 import okhttp3.Interceptor
 import okhttp3.OkHttpClient
+import okhttp3.Request
 import okhttp3.Response
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
@@ -25,37 +26,34 @@ object AppModule {
 
 
 
-    @Singleton
     @Provides
-    fun provideApiService(authInterceptor: Interceptor): ApiService {
-        val okHttpClient = OkHttpClient.Builder()
-            .addInterceptor(authInterceptor)
-            .build()
+    fun provideOkHttpClient(): OkHttpClient {
 
-        return Retrofit.Builder()
-            .baseUrl("https://jajanjalan-api-wt3sy4qeta-et.a.run.app/")
-            .client(okHttpClient)
-            .addConverterFactory(GsonConverterFactory.create())
+        return OkHttpClient.Builder()
+            .addInterceptor { chain ->
+                val original: Request = chain.request()
+                val requestBuilder: Request.Builder = original.newBuilder()
+                    .header("Authorization", "Bearer YOUR_ACCESS_TOKEN")
+                    .method(original.method, original.body)
+                val request: Request = requestBuilder.build()
+                chain.proceed(request)
+            }
             .build()
-            .create(ApiService::class.java)
+    }
+
+    @Provides
+    fun provideRetrofit(okHttpClient: OkHttpClient): Retrofit {
+        return Retrofit.Builder()
+            .baseUrl("https://jajanjalan-api-wt3sy4qeta-et.a.run.app")
+            .addConverterFactory(GsonConverterFactory.create())
+            .client(okHttpClient)
+            .build()
     }
 
 
-    @Singleton
     @Provides
-    fun provideAuthInterceptor(authManager: DataStoreManager): Interceptor {
-        return Interceptor { chain ->
-            val request = chain.request().newBuilder()
-
-            runBlocking {
-                authManager.getToken().let { token ->
-                    request.addHeader("Authorization", "Bearer $token")
-                }
-            }
-
-            val response: Response = chain.proceed(request.build())
-            response
-        }
+    fun provideApiService(retrofit: Retrofit): ApiService {
+        return retrofit.create(ApiService::class.java)
     }
 
     @Singleton

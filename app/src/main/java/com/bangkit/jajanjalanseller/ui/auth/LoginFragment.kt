@@ -85,9 +85,7 @@ class LoginFragment : Fragment() {
     private fun getDetailUser(userId: String, token: String) {
         viewModel.getDetailUser(userId).observe(viewLifecycleOwner) { response ->
             when (response) {
-                is Result.Loading -> {
-                    // Handle loading state
-                }
+
                 is Result.Success -> {
                     Log.d("User Login Info", response.data.toString())
                     val user = response.data.sellerDetail!!
