@@ -13,6 +13,7 @@ import com.google.gson.Gson
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.launch
 import okhttp3.MultipartBody
+import okhttp3.RequestBody
 import retrofit2.HttpException
 import javax.inject.Inject
 
@@ -27,10 +28,9 @@ class CreateTokoViewModel @Inject constructor(
 
     private val _isLoading = MutableLiveData<Boolean>()
     val isLoading: LiveData<Boolean> = _isLoading
-    private val errorMessage = MutableLiveData<String>()
-    val getErrorMessage: LiveData<String> = errorMessage
 
-    val token = "Bearer ${sellerRepository.getToken()}"
+
+
     fun createToko(
         name: String,
         address: String,
@@ -46,12 +46,24 @@ class CreateTokoViewModel @Inject constructor(
 
             try {
                 val response =
-                    sellerRepository.createToko(token,name, address, phone, lat, lon, description, image)
-                _createStore.postValue(Result.Success(response))
-                _isLoading.value = false
-            } catch (e: HttpException) {
+                    sellerRepository.createToko(name, address, phone, lat, lon, description, image)
+                if (response.isSuccessful ) {
+                    _createStore.postValue(Result.Success(response.body()!!))
+                } else {
+                    // handle the case where response is successful but the body is null
+                    _createStore.postValue(Result.Error("Response successful but body is null"))
+                }
+                _isLoading.postValue(false)
+            }
 
-                Log.d(TAG, "CREATE TOKO FAIL: $errorMessage")
+
+            catch (e: HttpException) {
+                val jsonInString = e.response()?.errorBody()?.string()
+                val errorBody = Gson().fromJson(jsonInString, CreateTokoResponse::class.java)
+                val errorMessage = errorBody?.message ?: "Unknown error"
+                _createStore.postValue(Result.Error(errorMessage))
+                _isLoading.postValue(false)
+                Log.e(TAG, "CREATE TOKO FAIL: $errorMessage")
 
             }
         }

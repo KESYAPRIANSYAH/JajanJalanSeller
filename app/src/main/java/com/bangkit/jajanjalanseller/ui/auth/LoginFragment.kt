@@ -1,28 +1,32 @@
 package com.bangkit.jajanjalanseller.ui.auth
 
+import android.content.Intent
 import android.os.Bundle
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
-import androidx.datastore.dataStore
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.navigation.fragment.findNavController
 import com.bangkit.jajanjalanseller.data.Result
-import com.bangkit.jajanjalanseller.data.local.DataStoreManager
+
 import com.bangkit.jajanjalanseller.databinding.FragmentLoginBinding
 import com.bangkit.jajanjalanseller.ui.auth.viewmodel.LoginViewModel
+import com.bangkit.jajanjalanseller.ui.toko.CreateTokoActivity
+import com.bangkit.jajanjalanseller.utils.UserPreference
 import dagger.hilt.android.AndroidEntryPoint
-import kotlinx.coroutines.runBlocking
+import javax.inject.Inject
 
 @AndroidEntryPoint
 class LoginFragment : Fragment() {
+
     private var _binding: FragmentLoginBinding? = null
-private  lateinit var dataStoreManager: DataStoreManager
     private val binding get() = _binding!!
     private val viewModel by viewModels<LoginViewModel>()
+    @Inject
+    lateinit var userPreference: UserPreference
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -52,11 +56,11 @@ private  lateinit var dataStoreManager: DataStoreManager
                     Log.d("User Detail", it.data.toString())
                     val userId = it.data.userInfo?.userId.toString()
                     Log.d("User Id", userId)
-                    getDetailUser(userId, it.data.userInfo?.token.toString())
+                    getDetailUser(userId)
+
+                    userPreference.saveToken(it.data.userInfo?.token.toString())
 
 
-
-                  
                 }
                 is Result.Error -> {
                     binding.progressIndicator.hide()
@@ -89,7 +93,7 @@ private  lateinit var dataStoreManager: DataStoreManager
             }
         }
     }
-    private fun getDetailUser(userId: String, token: String) {
+    private fun getDetailUser(userId: String) {
         viewModel.getDetailUser(userId).observe(viewLifecycleOwner) { response ->
             when (response) {
 
@@ -104,11 +108,9 @@ private  lateinit var dataStoreManager: DataStoreManager
                         user.image.toString(),
                         user.password.toString(),
                         user.role.toString(),
-                        token,
                     )
                 }
                 is Result.Error -> {
-                    Toast.makeText(requireContext(), response.message, Toast.LENGTH_SHORT).show()
                 }
 
                 else -> {}
@@ -116,18 +118,19 @@ private  lateinit var dataStoreManager: DataStoreManager
         }
     }
 
-    private fun saveSession(
+  private fun saveSession(
         userId: String,
         email: String,
         name: String,
         image: String,
         password: String,
         role:String,
-        token: String
     ) {
 
-        viewModel.saveUser(userId, email, name, image, password,role, token)
-
+        viewModel.saveUser(userId, email, name, image, password,role)
+      val intent = Intent(requireContext(), CreateTokoActivity::class.java)
+      startActivity(intent)
+      requireActivity().finish()
 
     }
 

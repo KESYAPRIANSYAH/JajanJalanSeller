@@ -26,9 +26,9 @@ class LoginViewModel @Inject constructor(
     val resultUser: LiveData<Result<SellerResponse>> get() = repository.resultUser
     fun login(email: String, password : String) = repository.login(email, password)
 
-    fun saveUser(userId: String, email: String, name: String, image: String , password: String, role :String ,token:String) {
+    fun saveUser(userId: String, email: String, name: String, image: String , password: String, role :String ) {
         viewModelScope.launch {
-            repository.saveUser(userId, email, name, image, password, role,token)
+            repository.saveUser(userId, email, name, image, password, role)
         }
     }
     fun getDetailUser(userId: String): LiveData<Result<SellerResponse>> {

@@ -16,16 +16,19 @@ import androidx.navigation.fragment.findNavController
 import com.bangkit.jajanjalanseller.R
 import com.bangkit.jajanjalanseller.databinding.FragmentSignUpfragmentBinding
 import com.bangkit.jajanjalanseller.ui.auth.viewmodel.SignUpragmentViewModel
+import com.bangkit.jajanjalanseller.utils.UserPreference
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
+import javax.inject.Inject
 
 @AndroidEntryPoint
 class SignUpFragment : Fragment() {
-
     private var _binding: FragmentSignUpfragmentBinding? = null
     private val binding get() = _binding!!
+    @Inject
+    lateinit var userPreference: UserPreference
     private val viewModel: SignUpragmentViewModel by viewModels()
-
+    private  val role = "penjual"
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?,
@@ -56,6 +59,7 @@ class SignUpFragment : Fragment() {
                 is Result.Success -> {
                     Log.d("User Detail", it.data.sellerDetail.toString())
                     binding.progressIndicator.hide()
+                    userPreference.saveToken(it.data.sellerDetail?.token.toString())
                     AlertDialog.Builder(requireContext()).apply {
                         setTitle("Register")
                         setMessage(getString(R.string.register_succeed))
@@ -115,7 +119,7 @@ class SignUpFragment : Fragment() {
                 Toast.makeText(requireContext(), "$email, $name, $password !", Toast.LENGTH_LONG)
                     .show()
                 lifecycleScope.launch {
-                    observeRegister(email, name, password, "penjual")
+                    observeRegister(email, name, password, role)
                 }
             }
         }

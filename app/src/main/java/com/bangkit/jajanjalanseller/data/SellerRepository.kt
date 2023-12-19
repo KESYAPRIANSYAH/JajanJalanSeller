@@ -2,17 +2,16 @@ package com.bangkit.jajanjalanseller.data
 
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MediatorLiveData
-import com.bangkit.jajanjalanseller.data.local.DataStoreManager
 import com.bangkit.jajanjalanseller.data.local.SellerModel
 import com.bangkit.jajanjalanseller.data.remote.response.CreateTokoResponse
 import com.bangkit.jajanjalanseller.data.remote.response.LoginResponse
 import com.bangkit.jajanjalanseller.data.remote.response.Seller
 import com.bangkit.jajanjalanseller.data.remote.response.SellerResponse
 import com.bangkit.jajanjalanseller.data.remote.retrofit.ApiService
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.first
+import com.bangkit.jajanjalanseller.utils.UserPreference
 import kotlinx.coroutines.runBlocking
 import okhttp3.MultipartBody
+import okhttp3.RequestBody
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
@@ -21,15 +20,15 @@ import javax.inject.Inject
 
 class SellerRepository @Inject constructor(
     private val apiService: ApiService,
-    private val dataStore: DataStoreManager
+    private val dataStore: UserPreference
 ) {
+
     private val resultLogin = MediatorLiveData<Result<LoginResponse>>()
     private val resultRegister = MediatorLiveData<Result<SellerResponse>>()
     private val _resultUser = MediatorLiveData<Result<SellerResponse>>()
     val resultUser: LiveData<Result<SellerResponse>> get() = _resultUser
     private val _seller = MediatorLiveData<SellerModel>()
     val seller: LiveData<SellerModel> get() = _seller
-    private val resultcreateToko = MediatorLiveData<Result<CreateTokoResponse>>()
 
     fun login(email: String, password: String): LiveData<Result<LoginResponse>> {
         resultLogin.value = Result.Loading
@@ -77,12 +76,12 @@ class SellerRepository @Inject constructor(
                 ) {
                     if (response.isSuccessful) {
                         val responseData = response.body()!!
+                        resultRegister.value = Result.Success(responseData)
                         responseData.sellerDetail?.token?.let { token ->
                             runBlocking {
                                 dataStore.saveToken(token)
                             }
                         }
-                        resultRegister.value = Result.Success(responseData)
                     } else {
                         resultRegister.value = Result.Error(response.message())
                     }
@@ -96,28 +95,24 @@ class SellerRepository @Inject constructor(
     }
 
 
-    suspend fun saveUser(
+    fun saveUser(
         userId: String,
         email: String,
         name: String,
         image: String,
         password: String,
-        role: String,
-        token: String
+        role: String
 
     ) {
-        dataStore.saveUser(userId, email, name, image, password, token, role)
+        dataStore.saveUser(userId, email, name, image, password, role)
     }
 
-    fun getUser(): Flow<SellerModel> {
-        return dataStore.getUser
+    fun getUser(): SellerModel? {
+        return dataStore.getUser()
     }
-
-    fun getToken() = runBlocking { dataStore.getUser.first().token }
 
 
     suspend fun createToko(
-        token:String,
         name: String,
         address: String,
         phone: String,
@@ -125,9 +120,10 @@ class SellerRepository @Inject constructor(
         lon: Float? = null,
         description: String,
         image: MultipartBody.Part
-    ): CreateTokoResponse{
-        return apiService.createPenjual(token ,name, address, phone, lat, lon, description, image)
+    ): Response<CreateTokoResponse> {
+        return apiService.createPenjual( name, address, phone, lat, lon, description, image)
     }
+
 
     suspend fun getDetailUser(userId: String): LiveData<Result<SellerResponse>> {
         val response = apiService.getUserDetail(userId)
@@ -146,8 +142,3 @@ class SellerRepository @Inject constructor(
     }
 
 }
-
-
-
-
-

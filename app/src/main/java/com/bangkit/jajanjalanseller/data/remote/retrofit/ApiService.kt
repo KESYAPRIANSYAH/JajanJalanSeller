@@ -6,6 +6,7 @@ import com.bangkit.jajanjalanseller.data.remote.response.LoginResponse
 import com.bangkit.jajanjalanseller.data.remote.response.Seller
 import com.bangkit.jajanjalanseller.data.remote.response.SellerResponse
 import okhttp3.MultipartBody
+import okhttp3.RequestBody
 import retrofit2.Call
 import retrofit2.Response
 import retrofit2.http.Body
@@ -35,7 +36,6 @@ interface ApiService {
     @POST("/penjual/create")
     @Multipart
     suspend fun createPenjual(
-        @Header("Authorization") token: String,
         @Part("name") name: String,
         @Part("address") address: String,
         @Part("phone") phone: String,
@@ -43,7 +43,7 @@ interface ApiService {
         @Part("lon") lon: Float?,
         @Part("description") description: String,
         @Part image: MultipartBody.Part,
-    ) : CreateTokoResponse
+    ) :Response<CreateTokoResponse>
 
 
     @FormUrlEncoded

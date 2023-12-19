@@ -20,10 +20,8 @@ class AuthViewModel @Inject constructor (
 
     fun checkUserAuthentication() {
         viewModelScope.launch {
-            repository.getUser()
-                .collect { user ->
-                    _user.value = user.userId.isNotEmpty()
-                }
+            val user = repository.getUser()
+            _user.value = user?.userId?.isNotEmpty() == true
         }
     }
 }
